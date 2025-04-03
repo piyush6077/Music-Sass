@@ -11,8 +11,8 @@ const Appbar = () => {
                 MusicSass
             </div>
             {session.data?.user
-              ? <button className='' onClick={()=>signIn()}> SignIn </button>
-              : <button className='' onClick={()=>signOut()}> LogOut </button>
+              ? <button className='' onClick={()=>signOut()}> Logout </button>
+              : <button className='' onClick={()=>signIn()}> SignIn </button>
             }
        </div>
     </div>

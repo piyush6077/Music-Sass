@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prismaClient } from "../lib/db"
+//@ts-ignore
+import youtubesearchapi from "youtube-search-api"
+
 const YT_Regex = new RegExp("^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+$")
 
 
@@ -24,6 +27,10 @@ export async function POST(req: NextRequest){
 
         const extractedId = data.url.split("?v=")[1]; 
 
+
+        const res = youtubesearchapi.GetVideoDetails(extractedId)
+        console.log("response: ",res)
+
         await prismaClient.stream.create({
             data: {
                 userId: data.creatorId,
@@ -40,4 +47,19 @@ export async function POST(req: NextRequest){
             status:411
         })
     }
+}
+
+
+
+export async function GET(req: NextRequest){
+    const creatorId = req.nextUrl.searchParams.get("creatorId")
+    const streams = await prismaClient.stream.findMany({
+        where: {
+            userId: creatorId ?? ""
+        }
+    })
+
+    return NextResponse.json({
+        streams
+    })
 }
