@@ -3,9 +3,6 @@ import GoogleProvider from "next-auth/providers/google"
 import { prismaClient } from "../../lib/db"
 
 
-console.log(process.env.GOOGLE_CLIENT_ID  )
-
-
 const handler = NextAuth({
     providers: [
         GoogleProvider({

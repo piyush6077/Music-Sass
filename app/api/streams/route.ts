@@ -4,7 +4,7 @@ import { prismaClient } from "../lib/db"
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api"
 
-const YT_Regex = new RegExp("^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+$")
+const YT_Regex =  /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 
 
 const CreateStreamSchema = z.object({
@@ -16,7 +16,7 @@ const CreateStreamSchema = z.object({
 export async function POST(req: NextRequest){
     try {
         const data = CreateStreamSchema.parse(await req.json())
-        const isYt = YT_Regex.test(data.url);
+        const isYt = data.url.match(YT_Regex);
         if(!isYt) {
             return NextResponse.json({
                 message: "Wrong URL format"
@@ -27,22 +27,33 @@ export async function POST(req: NextRequest){
 
         const extractedId = data.url.split("?v=")[1]; 
 
-
-        const res = youtubesearchapi.GetVideoDetails(extractedId)
+        const res = await youtubesearchapi.GetVideoDetails(extractedId)
         console.log("response: ",res)
+        const thumbnails = res.thumbnail.thumbnails;
+        thumbnails.sort((a: {width: number}, b: {width: number }) => a.width < b.width ? 1 : -1);
 
-        await prismaClient.stream.create({
+        const stream = await prismaClient.stream.create({
             data: {
                 userId: data.creatorId,
                 url: data.url,
                 extractedId,
-                type: "Youtube"
+                type: "Youtube",
+                title: res.title ?? "Cat",
+                smallImg: (thumbnails.length > 1 ? thumbnails[thumbnails.length - 2].url : thumbnails[thumbnails.length - 1].url) ?? "https://www.google.com/imgres?q=a%20cat%20image...",
+                bigImg: thumbnails[thumbnails.length - 1]?.url ?? "https://www.google.com/imgres?q=a%20cat%20image..."
             }
         })
-        //TODO RateLimiting
-    } catch (error) {
+        
+
         return NextResponse.json({
-            message: "Error while adding a stream"
+            message: "Stream added successfully",
+            id: stream.id
+        })
+
+    } catch (e) {
+        console.log(e)
+        return NextResponse.json({
+            message: "Error while adding a stream",
         }, {
             status:411
         })
@@ -63,3 +74,5 @@ export async function GET(req: NextRequest){
         streams
     })
 }
+
+
