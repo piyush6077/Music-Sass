@@ -13,11 +13,13 @@ import {
   AudioWaveformIcon as Waveform,
 } from "lucide-react"
 import Appbar from "./Components/Appbar"
+import { Redirect } from "./Components/Redirect"
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-[100dvh] w-[100vw] justify-center items-center flex-col">
+    <div className="flex min-h-[100dvh] w-[100vw] items-center flex-col">
       <Appbar/>
+      <Redirect/>
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-20 md:py-32 lg:py-40 xl:py-52 relative overflow-hidden">
